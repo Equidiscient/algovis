@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:algo_vis.ui.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="algo_vis.ui.Views.VisualiserView"
+             x:DataType="vm:VisualiserViewModel">
+    
+    <Grid RowDefinitions="*,Auto" Margin="10">
+        <!-- row 0 is a canvas for the rendering -->
+        <Image Source="{Binding RenderedOutput}"
+               x:Name="OutputImage"
+               Stretch="Uniform" 
+               MaxHeight="300"/>
+
+        <!-- row 1 displays explanations and/or logs -->
+        <TextBlock Text="{Binding Explanation}"
+                   TextWrapping="Wrap" />
+    </Grid>
+</UserControl>
