@@ -1,9 +1,11 @@
+using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace algo_vis.ui.ViewModels;
 
-public abstract class VisualiserViewModel : ViewModelBase
+public abstract partial class VisualiserViewModel : ViewModelBase
 {
     private string _explanation;
     public string Explanation
@@ -11,16 +13,6 @@ public abstract class VisualiserViewModel : ViewModelBase
         get => _explanation;
         set => SetProperty(ref _explanation, value);
     }
-    
-    private WriteableBitmap _renderedOutput;
-    public WriteableBitmap RenderedOutput
-    {
-        get => _renderedOutput;
-        set => SetProperty(ref _renderedOutput, value);
-    }
-
-    public VisualiserViewModel()
-    {
-        Explanation = "testing <> <b> </b> <script> ;'' \\n daw";
-    }
+    [ObservableProperty]
+    private WriteableBitmap _renderedOutput = new(new PixelSize(400,200), new Vector(96,96), PixelFormats.Bgra8888);
 }

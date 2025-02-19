@@ -26,4 +26,9 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
         <PackageReference Include="System.Reactive" Version="6.0.1" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\algorithms\algorithms.csproj" />
+      <ProjectReference Include="..\visualisers\visualisers.csproj" />
+    </ItemGroup>
 </Project>
