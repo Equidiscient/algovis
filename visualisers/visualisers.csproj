@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="Avalonia" Version="11.2.4" />
+      <PackageReference Include="SkiaSharp" Version="3.116.1" />
     </ItemGroup>
 
 </Project>
