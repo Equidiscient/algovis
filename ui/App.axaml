@@ -16,6 +16,9 @@
                  <DataTemplate DataType="{x:Type vm:SortingVisualiserViewModel}">
                      <views:VisualiserView />
                  </DataTemplate>
+                 <DataTemplate DataType="{x:Type vm:BarChartViewModel}">
+                     <views:VisualiserView />
+                 </DataTemplate>
                  <!-- etc... -->
              </Application.DataTemplates>
 </Application>

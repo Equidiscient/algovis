@@ -33,7 +33,7 @@ namespace algo_vis.ui.ViewModels
             switch (SelectedMenuItem)
             {
                 case "Visualize Sorting":
-                    _shell.NavigateTo(new SortingVisualiserViewModel());
+                    _shell.NavigateTo(new BarChartViewModel());
                     break;
 
                 case "Visualize BFS":

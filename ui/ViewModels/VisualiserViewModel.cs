@@ -1,7 +1,9 @@
+using algo_vis.ui.ViewModels;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
+using SkiaSharp;
 
 namespace algo_vis.ui.ViewModels;
 
@@ -14,5 +16,5 @@ public abstract partial class VisualiserViewModel : ViewModelBase
         set => SetProperty(ref _explanation, value);
     }
     [ObservableProperty]
-    private WriteableBitmap _renderedOutput = new(new PixelSize(400,200), new Vector(96,96), PixelFormats.Bgra8888);
+    internal SKBitmap _renderedOutput = new(400,200);
 }
