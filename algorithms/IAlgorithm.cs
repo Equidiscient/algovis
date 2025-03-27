@@ -18,7 +18,7 @@ public interface IAlgorithm<T>
     /// Provide an explanation or description of what happened in the last step.
     /// This is used to show text to the user.
     /// </summary>
-    string GetExplanation();
+    string GetExplanation(); // TODO: change to struct or similar, allowing varying explanations
 
     /// <summary>
     /// Return any data that the framework can visualize.
