@@ -1,12 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Platform;
-using Avalonia.Rendering.SceneGraph;
-using Avalonia.Skia;
 using SkiaSharp;
 
-namespace algo_vis.ui.Skia;
+namespace algo_vis.ui;
 
 public class SkiaCanvas : Control
 {

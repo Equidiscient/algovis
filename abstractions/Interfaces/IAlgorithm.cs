@@ -1,4 +1,4 @@
-namespace algo_vis.algorithms;
+namespace algo_vis.abstractions.Interfaces;
 
 public interface IAlgorithm<T>
 {
@@ -16,9 +16,8 @@ public interface IAlgorithm<T>
 
     /// <summary>
     /// Provide an explanation or description of what happened in the last step.
-    /// This is used to show text to the user.
     /// </summary>
-    string GetExplanation(); // TODO: change to struct or similar, allowing varying explanations
+    string GetExplanation();
 
     /// <summary>
     /// Return any data that the framework can visualize.

@@ -6,29 +6,47 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <RootNamespace>algo-vis.ui</RootNamespace>
+        <RootNamespace>algo_vis.ui</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="..\Guide\**\*.md" />
+        <EmbeddedResource Update="..\Guide\Landing.md">
+          <Link>Assets\Guide\Landing.md</Link>
+        </EmbeddedResource>
+        <!-- <EmbeddedResource Include="..\Guide\*.md" /> -->
+    </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.2.4" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.1"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.1"/>
+        <PackageReference Include="Avalonia" Version="11.2.8" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.8" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.8" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.8" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.1">
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.8">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="Markdown.Avalonia" Version="11.0.2" />
         <PackageReference Include="System.Reactive" Version="6.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\algorithms\algorithms.csproj" />
+      <ProjectReference Include="..\algorithms.builtins\algorithms.builtins.csproj" />
       <ProjectReference Include="..\visualisers\visualisers.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Interfaces\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="ViewModels\SortingVisualiserViewModel.cs" />
+      <Compile Remove="ViewModels\BarChartViewModel.cs" />
     </ItemGroup>
 </Project>

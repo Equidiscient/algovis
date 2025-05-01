@@ -4,12 +4,20 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
+        <RootNamespace>algo_vis.visualisers</RootNamespace>
+        <AssemblyName>visualisers.builtins</AssemblyName>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Avalonia" Version="11.2.4" />
+      <PackageReference Include="Avalonia" Version="11.2.8" />
       <PackageReference Include="SkiaSharp" Version="3.116.1" />
       <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.116.1" />
+      <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.116.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\abstractions\abstractions.csproj" />
     </ItemGroup>
 
 </Project>

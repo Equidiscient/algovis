@@ -1,51 +1,33 @@
-using algo_vis.ui.Models;
-using algo_vis.visualisers;
+using algo_vis.abstractions;
+using algo_vis.abstractions.Interfaces;
 
-namespace algo_vis.algorithms;
-
-public class AlgorithmController<T>
+public class AlgorithmController<T>(IAlgorithm<T> algo)
 {
-    private IAlgorithm<T> _algorithm;
     private bool _isComplete;
-    
-    private IDataVisualiser<T> _dataVisualiser;
-    private IExplanationView _explanationView;
 
-    public AlgorithmController(IAlgorithm<T> algorithm, 
-        IDataVisualiser<T> dataVisualiser, 
-        IExplanationView explanationView)
+    public void Initialize(T parameters)
     {
-        _algorithm = algorithm;
-        _dataVisualiser = dataVisualiser;
-        _explanationView = explanationView;
-    }
-
-    public void InitializeAlgorithm(T parameters)
-    {
-        _algorithm.Initialize(parameters);
+        algo.Initialize(parameters);
         _isComplete = false;
-        UpdateUI();
     }
 
-    // Called by the UI (next)
-    public void NextStep()
+    public StepResult<T> Step()
     {
-        if (_isComplete) return;
-        bool canContinue = _algorithm.NextStep();
-        if (!canContinue)
-        {
+        if (!_isComplete && !algo.NextStep())
             _isComplete = true;
-        }
-        UpdateUI();
-    }
 
-    private void UpdateUI()
-    {
-        var data = _algorithm.GetDataToVisualize();
-        var explanation = _algorithm.GetExplanation();
-        
-        _dataVisualiser.DisplayData(data);
-
-        _explanationView.SetExplanation(explanation);
+        return new StepResult<T>
+        {
+            Data        = algo.GetDataToVisualize(),
+            Explanation = algo.GetExplanation(),
+            IsComplete  = _isComplete
+        };
     }
+}
+
+public class StepResult<T>
+{
+    public T      Data        { get; init; }
+    public string Explanation { get; init; }
+    public bool   IsComplete  { get; init; }
 }

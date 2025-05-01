@@ -3,21 +3,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:algo_vis.ui.ViewModels"
-             xmlns:controls="clr-namespace:algo_vis.ui.Skia"
-             xmlns:skia="clr-namespace:algo_vis.ui.Skia"
+             xmlns:ui="clr-namespace:algo_vis.ui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="algo_vis.ui.Views.VisualiserView"
-             x:DataType="vm:VisualiserViewModel">
-    
-    <Grid RowDefinitions="*,Auto" Margin="10" >
-        <!-- row 0 is a canvas for the rendering -->
-        <skia:SkiaCanvas Bitmap="{Binding RenderedOutput}"
+             x:DataType="vm:IVisualiserViewModel">
+    <!-- now three rows: canvas, explanation, button -->
+    <Grid RowDefinitions="*,Auto,Auto" Margin="10" >
+         <!-- row 0 is a canvas for the rendering -->
+         <ui:SkiaCanvas Bitmap="{Binding RenderedOutput}"
                     x:Name="OutputCanvas"
                     Width="400"
                     Height="300"/>
 
         <!-- row 1 displays explanations and/or logs -->
-        <TextBlock Grid.Row="1" Text="{Binding Explanation}"
-                   TextWrapping="Wrap" />
-    </Grid>
+         <TextBlock Grid.Row="1" Text="{Binding Explanation}"
+                    TextWrapping="Wrap" />
+        <!-- row 2: step control -->
+        <Button Grid.Row="2"
+                Content="Next Step"
+                Command="{Binding NextStepCommand}"
+                HorizontalAlignment="Right"/>
+     </Grid>
 </UserControl>

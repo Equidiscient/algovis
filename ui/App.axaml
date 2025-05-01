@@ -10,15 +10,11 @@
     </Application.Styles>
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
              <Application.DataTemplates>
-                 <DataTemplate DataType="{x:Type vm:MainMenuViewModel}">
-                     <views:MainMenuView/>
-                 </DataTemplate>
-                 <DataTemplate DataType="{x:Type vm:SortingVisualiserViewModel}">
+                 <DataTemplate DataType="{x:Type vm:IVisualiserViewModel}">
                      <views:VisualiserView />
                  </DataTemplate>
-                 <DataTemplate DataType="{x:Type vm:BarChartViewModel}">
-                     <views:VisualiserView />
+                 <DataTemplate DataType="{x:Type vm:MarkdownRendererViewModel}">
+                     <views:MarkdownRendererView />
                  </DataTemplate>
-                 <!-- etc... -->
              </Application.DataTemplates>
 </Application>

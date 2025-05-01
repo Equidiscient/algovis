@@ -1,0 +1,53 @@
+﻿<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
+    xmlns:vms="clr-namespace:algo_vis.ui.ViewModels"
+    xmlns:system="clr-namespace:System;assembly=System.Runtime"
+    x:Class="algo_vis.ui.Views.MarkdownRendererView"
+    x:DataType="vms:MarkdownRendererViewModel"
+    x:Name="RootControl"
+    xmlns:styles="clr-namespace:Avalonia.Styling;assembly=Avalonia.Base"
+    xmlns:converters="clr-namespace:algo_vis.ui.Views.Converters">
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <!-- Subtle style for breadcrumb buttons -->
+        <Style Selector="Button.breadcrumb">
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        
+        <!-- Breadcrumb Navigation -->
+        <StackPanel Orientation="Horizontal"
+                    DockPanel.Dock="Top"
+                    Margin="5">
+            <ItemsControl
+    ItemsSource="{Binding Breadcrumbs}"
+    Tag="{Binding}">
+    <ItemsControl.ItemTemplate>
+        <DataTemplate>
+            <Button
+    Content="{Binding FriendlyName}"
+    Command="{Binding Command}"
+    CommandParameter="{Binding}"
+    Classes="breadcrumb"
+    IsEnabled="{Binding IsActive, Converter={StaticResource InverseBooleanConverter}}"/>
+        </DataTemplate>
+    </ItemsControl.ItemTemplate>
+</ItemsControl>
+        </StackPanel>
+        <!-- MarkdownViewer -->
+        <md:MarkdownScrollViewer Margin="8"
+                                 Markdown="{Binding Markdown}" />
+    </DockPanel>
+</UserControl>

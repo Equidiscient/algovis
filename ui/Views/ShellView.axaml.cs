@@ -1,12 +1,12 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace algo_vis.ui.Views;
 
-public partial class MainMenuView : UserControl
+public partial class ShellView : Window
 {
-    public MainMenuView()
+    public ShellView()
     {
         InitializeComponent();
     }
