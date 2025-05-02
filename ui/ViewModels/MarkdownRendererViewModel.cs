@@ -21,6 +21,8 @@ public partial class MarkdownRendererViewModel : ObservableObject
     public static MarkdownRendererViewModel Instance => 
         _instance ??= new MarkdownRendererViewModel();
 
+    public ICommand HyperlinkCommand { get; }
+    
     [ObservableProperty]
     private string _markdown;
 
@@ -30,8 +32,40 @@ public partial class MarkdownRendererViewModel : ObservableObject
     private MarkdownRendererViewModel()
     {
         Markdown = GetMarkdownFromResource(HomeResourceName);
+        HyperlinkCommand = new RelayCommand<string>(OnHyperlinkClicked);
     }
 
+    private void OnHyperlinkClicked(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            // Open web link in external browser
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        else
+        {
+            // Map internal links to resource names
+            var resource = MapLinkToResourceName(url);
+            if (resource != null)
+            {
+                LoadMarkdownFromResource(resource);
+            }
+        }
+    }
+    
+    // Add a simple mapper (expand/change as needed)
+    private static string? MapLinkToResourceName(string url)
+    {
+        // Example: /structure --> algo_vis.ui.Assets.Guide.Structure.md
+        var name = url.Trim('/').Replace('/', '.');
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var resource = $"algo_vis.ui.Assets.Guide.{char.ToUpper(name[0]) + name[1..]}.md";
+        return resource;
+    }
+
+    
     [RelayCommand]
     public void LoadMarkdownFromResource(string resourceName)
     {

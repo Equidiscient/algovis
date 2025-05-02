@@ -19,6 +19,7 @@ public class SkiaDrawOperation(Rect bounds, SKBitmap bitmap) : ICustomDrawOperat
         var canvas = lease.SkCanvas;
         if (canvas is not null && bitmap is not null)
         {
+          
             canvas.DrawBitmap(
                 bitmap,
                 SKRect.Create(0, 0, bitmap.Width, bitmap.Height),
