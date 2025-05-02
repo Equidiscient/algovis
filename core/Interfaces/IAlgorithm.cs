@@ -1,12 +1,13 @@
-namespace algo_vis.abstractions.Interfaces;
+using algo_vis.core.Models;
+
+namespace algo_vis.core.Interfaces;
 
 public interface IAlgorithm<T>
 {
     /// <summary>
     /// Initialize the algorithm's data structures.
-    /// Possibly parse user parameters (array size, graph structure, etc.).
     /// </summary>
-    void Initialize(T initialState);
+    void Initialize();
 
     /// <summary>
     /// Move the algorithm forward by one step.
@@ -17,7 +18,7 @@ public interface IAlgorithm<T>
     /// <summary>
     /// Provide an explanation or description of what happened in the last step.
     /// </summary>
-    string GetExplanation();
+    LodExplanation GetExplanation();
 
     /// <summary>
     /// Return any data that the framework can visualize.

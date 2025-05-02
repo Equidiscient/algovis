@@ -7,24 +7,42 @@ namespace algo_vis.ui;
 
 public class ViewLocator : IDataTemplate
 {
-    public Control? Build(object? param)
-    {
-        if (param is null)
-            return null;
+  public Control? Build(object? param)
+  {
+    if (param is null)
+      return null;
 
-        var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-        var type = Type.GetType(name);
+    // 1) get the VM’s runtime type
+    var vmType = param.GetType();
 
-        if (type != null)
-        {
-            return (Control)Activator.CreateInstance(type)!;
-        }
+    // 2) if it’s a generic, reduce it to its open‐generic definition
+    var typeToInspect = vmType.IsGenericType
+      ? vmType.GetGenericTypeDefinition()
+      : vmType;
 
-        return new TextBlock { Text = "Not Found: " + name };
-    }
+    // 3) strip off any "`1", "`2", etc
+    var rawName = typeToInspect.Name;
+    var tick     = rawName.IndexOf('`');
+    if (tick > 0)
+       rawName = rawName.Substring(0, tick);
 
-    public bool Match(object? data)
-    {
-        return data is ViewModelBase;
-    }
+    // 4) swap "ViewModel" → "View"
+    var viewName = rawName.Replace("ViewModel", "View", StringComparison.Ordinal);
+
+    var viewNs = typeToInspect.Namespace?
+                   .Replace("ViewModels", "Views", StringComparison.Ordinal) 
+                 ?? throw new InvalidOperationException("No namespace on VM");
+
+    // 6) build the full name and try to find it
+    var fullTypeName = $"{viewNs}.{viewName}";
+    var viewType     = Type.GetType(fullTypeName);
+
+    if (viewType != null && typeof(Control).IsAssignableFrom(viewType))
+      return (Control)Activator.CreateInstance(viewType)!;
+
+    // fallback so you see what you missed:
+    return new TextBlock { Text = $"View not found: {fullTypeName}" };
+  }
+
+  public bool Match(object? data) => data is ViewModelBase;
 }

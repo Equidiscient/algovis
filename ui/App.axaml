@@ -2,19 +2,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="algo_vis.ui.App"
              xmlns:local="using:algo_vis.ui"
-             xmlns:views="clr-namespace:algo_vis.ui.Views"
              xmlns:vm="clr-namespace:algo_vis.ui.ViewModels"
+             xmlns:views="clr-namespace:algo_vis.ui.Views"
              RequestedThemeVariant="Dark">
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
              <Application.DataTemplates>
-                 <DataTemplate DataType="{x:Type vm:IVisualiserViewModel}">
-                     <views:VisualiserView />
+                 <DataTemplate x:DataType="vm:MarkdownRendererViewModel">
+                     <views:MarkdownRendererView/>
                  </DataTemplate>
-                 <DataTemplate DataType="{x:Type vm:MarkdownRendererViewModel}">
-                     <views:MarkdownRendererView />
-                 </DataTemplate>
+                 <local:ViewLocator />
              </Application.DataTemplates>
 </Application>

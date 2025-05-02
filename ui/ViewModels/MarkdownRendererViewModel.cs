@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -9,6 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace algo_vis.ui.ViewModels;
 
@@ -54,7 +54,7 @@ public partial class MarkdownRendererViewModel : ObservableObject
 
     private void AddBreadcrumbIfNew(string resourceName)
     {
-        if (Breadcrumbs.All(b => b.ResourceName != resourceName))
+        if (Enumerable.All<Breadcrumb>(Breadcrumbs, b => b.ResourceName != resourceName))
         {
             Breadcrumbs.Add(new Breadcrumb(resourceName, BreadcrumbClickedCommand));
             UpdateActiveBreadcrumb();

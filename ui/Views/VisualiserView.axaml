@@ -4,24 +4,36 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:algo_vis.ui.ViewModels"
              xmlns:ui="clr-namespace:algo_vis.ui"
+             xmlns:controls="clr-namespace:algo_vis.ui.Controls"
+             d:DataContext="{d:DesignInstance vm:IVisualiserViewModel}"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="algo_vis.ui.Views.VisualiserView"
-             x:DataType="vm:IVisualiserViewModel">
-    <!-- now three rows: canvas, explanation, button -->
-    <Grid RowDefinitions="*,Auto,Auto" Margin="10" >
-         <!-- row 0 is a canvas for the rendering -->
-         <ui:SkiaCanvas Bitmap="{Binding RenderedOutput}"
-                    x:Name="OutputCanvas"
-                    Width="400"
-                    Height="300"/>
+             x:DataType="vm:IVisualiserViewModel"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
+  <Grid Margin="10"
+        RowDefinitions="*,Auto, Auto"
+        ColumnDefinitions="Auto, *">
+    <!-- full-row canvas -->
+    <controls:SkiaCanvas Grid.Row="0" Grid.ColumnSpan="2"
+                        Bitmap="{Binding RenderedOutput, Mode=OneWayToSource}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"/>
 
-        <!-- row 1 displays explanations and/or logs -->
-         <TextBlock Grid.Row="1" Text="{Binding Explanation}"
-                    TextWrapping="Wrap" />
-        <!-- row 2: step control -->
-        <Button Grid.Row="2"
-                Content="Next Step"
-                Command="{Binding NextStepCommand}"
-                HorizontalAlignment="Right"/>
-     </Grid>
+    <!-- row 1: combobox + text next to each other -->
+    <ComboBox Grid.Row="1" Grid.Column="0"
+              Width="120"
+              ItemsSource="{Binding VerbosityLevels}"
+              SelectedItem="{Binding SelectedLevel, Mode=TwoWay}"/>
+    <TextBlock Grid.Row="1" Grid.Column="1"
+               Margin="8,0,0,0"
+               Text="{Binding Explanation}"
+               TextWrapping="Wrap"/>
+
+    <!-- row 2: next-step button aligned right -->
+    <Button Grid.Row="2" Grid.Column="1"
+            HorizontalAlignment="Right"
+            Content="Next Step"
+            Command="{Binding NextStepCommand}"/>
+  </Grid>
 </UserControl>

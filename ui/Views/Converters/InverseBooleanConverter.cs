@@ -1,6 +1,7 @@
 ﻿using System;
-using Avalonia.Data.Converters;
 using System.Globalization;
+using Avalonia.Data.Converters;
+
 namespace algo_vis.ui.Views.Converters;
 
 public class InverseBooleanConverter : IValueConverter

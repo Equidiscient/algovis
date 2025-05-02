@@ -1,71 +1,101 @@
 using System;
-using System.Runtime.InteropServices;
-using algo_vis.abstractions;
-using algo_vis.abstractions.Interfaces;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using algo_vis.core.Interfaces;
+using algo_vis.core.Models;
 using algo_vis.ui.Models;
-using algo_vis.ui.ViewModels;
-using Avalonia;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SkiaSharp;
 
 namespace algo_vis.ui.ViewModels;
 
-public interface IVisualiserViewModel
-{
-    SKBitmap RenderedOutput { get; }
-    string   Explanation    { get; }
-    IRelayCommand NextStepCommand { get; }
-}
-
-public partial class VisualiserViewModel<T> : ViewModelBase, IVisualiserViewModel
-{
+  public partial class VisualiserViewModel<T> : ViewModelBase, IVisualiserViewModel
+  {
     private readonly AlgorithmController<T> _controller;
-    private readonly IDataVisualiser<T>     _visualiser;
-    private readonly FrameBuffer            _buffer;
+    private readonly IVisualiser<T>         _visualiser;
+
+    // queue up the last full LodExplanation
+    private LodExplanation _lastLod = default!;
+
+    // track when algorithm is done
+    private bool _isComplete;
 
     public VisualiserViewModel(
-        AlgorithmController<T> controller,
-        IDataVisualiser<T>     visualiser,
-        FrameBuffer            buffer)
+    AlgorithmController<T> controller,
+    IVisualiser<T>         visualiser)
+{
+  _controller     = controller;
+  _visualiser     = visualiser;
+  NextStepCommand = new RelayCommand(OnNext);
+
+  // 1) grab the very first state/explanation
+  var init = _controller.Current;
+  _lastLod    = init.Explanation;
+  Explanation = _lastLod[SelectedLevel];
+
+  // 2) whenever the bitmap is allocated, draw the INITIAL data
+  PropertyChanged += (_, e) =>
+  {
+    if (e.PropertyName == nameof(RenderedOutput) 
+        && RenderedOutput is SKBitmap bmp)
     {
-        _controller  = controller;
-        _visualiser  = visualiser;
-        _buffer      = buffer;
-        NextStepCommand = new RelayCommand(OnNext);
-        _isComplete = false;
+      var canvas = new SkiaVisualisationCanvas(bmp);
+      _visualiser.DrawData(init.Data, canvas);
+      OnPropertyChanged(nameof(RenderedOutput)); // push the update back to the view
     }
+  };
+
+  SelectedLevel = VerbosityLevel.Brief;
+}
+
+    /// <summary>
+    /// All available verbosity levels for the UI to choose.
+    /// </summary>
+    public IReadOnlyList<VerbosityLevel> VerbosityLevels => Enum.GetValues<VerbosityLevel>().AsReadOnly();
+
+    [ObservableProperty]
+    private VerbosityLevel _selectedLevel;
+    partial void OnSelectedLevelChanged(VerbosityLevel old, VerbosityLevel @new)
+    {
+      // re-render the last explanation at the newly picked level
+      Explanation = _lastLod[@new];
+    }
+
+    [ObservableProperty] private string     _explanation    = string.Empty;
+    [ObservableProperty] private SKBitmap?  _renderedOutput;
 
     public IRelayCommand NextStepCommand { get; }
 
-    [ObservableProperty] private SKBitmap _renderedOutput = new(400,200);
-    [ObservableProperty] private string   _explanation   = string.Empty;
-    private bool _isComplete;
-
-
     private void OnNext()
     {
-        var result = _controller.Step();
-        _isComplete = result.IsComplete;
+      if (_isComplete || RenderedOutput is null)
+        return;
 
-        // render
-        _visualiser.DisplayData(result.Data, _buffer);
-        CopyBufferToBitmap(_buffer, RenderedOutput);
+      // run one step and grab the LodExplanation
+      var result   = _controller.Step();
+      _isComplete  = result.IsComplete;
+      _lastLod     = result.Explanation;
 
-        // update
-        Explanation = result.Explanation;
-        OnPropertyChanged(nameof(RenderedOutput));
+      // pick the right string for the current verbosity
+      Explanation = _lastLod[SelectedLevel];
+
+      // draw the data into our SKBitmap
+      var canvas = new SkiaVisualisationCanvas(RenderedOutput);
+      _visualiser.DrawData(result.Data, canvas);
+
+      // notify Avalonia that the bitmap has changed
+      OnPropertyChanged(nameof(RenderedOutput));
     }
+  }
 
-    private unsafe void CopyBufferToBitmap(FrameBuffer fb, SKBitmap bmp)
-    {
-        fixed (uint* src = fb.Pixels)
-        {
-            var dst = bmp.GetPixels();
-            long size = fb.Pixels.Length * sizeof(uint);
-            Buffer.MemoryCopy(src, (void*)dst, size, size);
-        }
-    }
-}
+  public interface IVisualiserViewModel
+  {
+    SKBitmap? RenderedOutput { get; }
+    string Explanation       { get; }
+    
+    IReadOnlyList<VerbosityLevel> VerbosityLevels { get; }
+    
+    VerbosityLevel SelectedLevel { get; set;  }
+    IRelayCommand NextStepCommand { get; }
+  }

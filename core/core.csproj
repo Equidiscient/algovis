@@ -3,9 +3,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <Nullable>enable</Nullable>
-        <RootNamespace>algo_vis.algorithms.builtins</RootNamespace>
-        <LangVersion>10</LangVersion>
-        <AssemblyName>algorithms.builtins</AssemblyName>
+        <LangVersion>12</LangVersion>
+        <RootNamespace>algo_vis.core</RootNamespace>
     </PropertyGroup>
 
 </Project>

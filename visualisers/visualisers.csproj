@@ -17,7 +17,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\abstractions\abstractions.csproj" />
+      <ProjectReference Include="..\core\core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="builtin\" />
     </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-namespace algo_vis.abstractions.Interfaces;
+namespace algo_vis.core.Interfaces;
 
 public interface IExplanationView
 {

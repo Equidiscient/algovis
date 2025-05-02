@@ -1,18 +1,18 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:algo_vis.ui.ViewModels"
-        xmlns:conv="clr-namespace:algo_vis.ui.Views.Converters"
+        xmlns:vms="using:algo_vis.ui.ViewModels"
+        xmlns:converters="clr-namespace:algo_vis.ui.Views.Converters"
         x:Class="algo_vis.ui.Views.ShellView"
         Title="Algorithm Visualisation"
-        x:DataType="vm:ShellViewModel"
+        x:DataType="vms:ShellViewModel"
         Width="800" Height="450">
 
   <Window.Resources>
-    <conv:InverseBooleanConverter x:Key="Inv"/>
+    <converters:InverseBooleanConverter x:Key="Inv"/>
   </Window.Resources>
 
   <Window.DataContext>
-    <vm:ShellViewModel/>
+    <vms:ShellViewModel/>
   </Window.DataContext>
 
   <Grid>

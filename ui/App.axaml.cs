@@ -3,9 +3,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
+using algo_vis.ui.Views;
 using Avalonia.Markup.Xaml;
 using algo_vis.ui.ViewModels;
-using algo_vis.ui.Views;
+using ShellView = algo_vis.ui.Views.ShellView;
+using ShellViewModel = algo_vis.ui.ViewModels.ShellViewModel;
 
 namespace algo_vis.ui;
 

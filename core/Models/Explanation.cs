@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
 
-namespace algo_vis.abstractions;
+namespace algo_vis.core.Models;
 
 public enum VerbosityLevel
 {

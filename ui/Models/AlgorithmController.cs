@@ -1,33 +1,40 @@
-using algo_vis.abstractions;
-using algo_vis.abstractions.Interfaces;
+﻿using System.Collections.Generic;
+using algo_vis.core;
+using algo_vis.core.Interfaces;
 
-public class AlgorithmController<T>(IAlgorithm<T> algo)
+namespace algo_vis.ui.Models;
+
+public class AlgorithmController<T>
 {
     private bool _isComplete;
+    private readonly IAlgorithm<T> _algo;
 
-    public void Initialize(T parameters)
+    public AlgorithmController(IAlgorithm<T> algo)
     {
-        algo.Initialize(parameters);
-        _isComplete = false;
+         algo.Initialize();
+        _algo = algo;
     }
+
+    public StepResult<T> Current =>
+    new StepResult<T>
+    {
+      Data        = _algo.GetDataToVisualize(),
+      Explanation = _algo.GetExplanation(),
+      IsComplete  = _isComplete
+    };
 
     public StepResult<T> Step()
     {
-        if (!_isComplete && !algo.NextStep())
+        if (!_isComplete && !_algo.NextStep())
             _isComplete = true;
+        var lod    = _algo.GetExplanation();
 
+        
         return new StepResult<T>
         {
-            Data        = algo.GetDataToVisualize(),
-            Explanation = algo.GetExplanation(),
+            Data        = _algo.GetDataToVisualize(),
+            Explanation = lod,
             IsComplete  = _isComplete
         };
     }
-}
-
-public class StepResult<T>
-{
-    public T      Data        { get; init; }
-    public string Explanation { get; init; }
-    public bool   IsComplete  { get; init; }
 }

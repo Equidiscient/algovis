@@ -1,7 +1,4 @@
-﻿using algo_vis.ui.ViewModels;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.VisualTree;
+﻿using Avalonia.Controls;
 
 namespace algo_vis.ui.Views;
 
