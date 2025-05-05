@@ -16,7 +16,7 @@
         ColumnDefinitions="Auto, *">
     <!-- full-row canvas -->
     <controls:SkiaCanvas Grid.Row="0" Grid.ColumnSpan="2"
-                        Bitmap="{Binding RenderedOutput, Mode=OneWayToSource}"
+                        Bitmap="{Binding RenderedOutput, Mode=TwoWay}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"/>
 

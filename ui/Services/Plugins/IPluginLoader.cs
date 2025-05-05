@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,4 +21,7 @@ public interface IPluginLoader
         string folder,
         IProgress<PluginLoadProgress>? progress = null,
         CancellationToken cancellation = default);
+
+    Type[] LoadBuiltInAlgorithms(Assembly? assembly = null);
+    Type[] LoadBuiltInVisualisers(Assembly? assembly = null);
 }

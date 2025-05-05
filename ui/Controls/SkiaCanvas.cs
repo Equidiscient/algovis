@@ -9,17 +9,15 @@ namespace algo_vis.ui.Controls;
 
 public class SkiaCanvas : Control
 {
-  private SKBitmap? _bitmap;
-
   public static readonly StyledProperty<SKBitmap?> BitmapProperty =
     AvaloniaProperty.Register<SkiaCanvas, SKBitmap?>(
       nameof(Bitmap));
 
-  public SKBitmap? Bitmap
-  {
-    get => _bitmap;
+public SKBitmap? Bitmap
+{
+    get => GetValue(BitmapProperty);
     set => SetValue(BitmapProperty, value);
-  }
+}
   
   public SkiaCanvas()
   {
@@ -28,14 +26,14 @@ public class SkiaCanvas : Control
     {
       var w = (int)boundsRect.Width;
       var h = (int)boundsRect.Height;
-      if (w > 0 && h > 0)
+      if (w > 0 && h > 0 && (w != Bitmap?.Width || h != Bitmap?.Height))
       {
         // dispose old
-        _bitmap?.Dispose();
+        Bitmap?.Dispose();
 
         // create a new one at exactly the control's pixel size
-        _bitmap = new SKBitmap(w, h);
-        Bitmap = _bitmap;        // will InvalidateVisual()
+        var bitmap = new SKBitmap(w, h);
+        Bitmap = bitmap;        // will InvalidateVisual()
       }
     });
   }
@@ -54,4 +52,3 @@ public class SkiaCanvas : Control
     BitmapProperty.Changed.AddClassHandler<SkiaCanvas>((canvas, _) => canvas.InvalidateVisual());
   }
 }
-

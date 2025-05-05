@@ -11,7 +11,7 @@ namespace algo_vis.builtins.algorithms
     [AlgorithmTag("Built-in", "Sorting")]
     public class BubbleSortAlgorithm : IAlgorithm<int[]>
     {
-        private int[] _data = Array.Empty<int>();
+        private int[] _data = [];
         private int _i, _j;
         private bool _sorted;
         private LodExplanation _lastExplanation;

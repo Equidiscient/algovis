@@ -71,109 +71,89 @@ public partial class ShellViewModel : ViewModelBase
     {
         DiscoveryStatus = "Discovering…";
 
-        // 1) built-in in this assembly
-        var asm          = Assembly.GetAssembly(typeof(BubbleSortAlgorithm))!;
-        var builtInAlgos = asm.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract
-                     && t.GetInterfaces()
-                         .Any(i => i.IsGenericType
-                                   && i.GetGenericTypeDefinition() == typeof(IAlgorithm<>)))
-            .ToArray();
-        var builtInVis   = asm.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract
-                     && t.GetInterfaces()
-                         .Any(i => i.IsGenericType
-                                   && i.GetGenericTypeDefinition() == typeof(IVisualiser<>)))
-            .ToArray();
+        // Get built-ins via PluginLoader
+        var builtInAlgos = _pluginLoader.LoadBuiltInAlgorithms();
+        var builtInVis   = _pluginLoader.LoadBuiltInVisualisers();
 
-        // 2) plugin-loaded
         Type[] pluginAlgos = [], pluginVis = [];
-        try { pluginAlgos = await _pluginLoader.LoadAlgorithmsAsync(_pluginFolder); }
-        catch (Exception ex) { Debug.WriteLine($"exception loading plugins: {ex.Message}"); }
         try { pluginVis   = await _pluginLoader.LoadVisualisersAsync(_pluginFolder); }
         catch (Exception ex) { Debug.WriteLine($"exception loading visualisers: {ex.Message}"); }
+        try { pluginAlgos = await _pluginLoader.LoadAlgorithmsAsync(_pluginFolder); }
+        catch (Exception ex) { Debug.WriteLine($"exception loading plugins: {ex.Message}"); }
 
-        // 3) merge into mutable pools
-        var allAlgos        = builtInAlgos.Concat(pluginAlgos).ToList();
-        var globalVisPool   = builtInVis.Concat(pluginVis).ToList();
-        var remainingAlgos  = new List<Type>(allAlgos);
-        var menuItems       = new List<AlgorithmMenuItem>();
-
-        // 4a) per-assembly explicit bundling via VisualiserForAttribute
-        foreach (var group in remainingAlgos.GroupBy(a => a.Assembly).ToList())
+        // 1) Build VisualiserKey and DataType maps
+        PluginRegistry.VisualiserKeys.Clear();
+        PluginRegistry.VisualiserByDataType.Clear();
+        var allVis = builtInVis.Concat(pluginVis).ToList();
+        foreach (var v in allVis)
         {
-            var algosInAsm = group.ToList();
-            var visInAsm   = globalVisPool.Where(v => v.Assembly == group.Key).ToList();
+            // VisualiserKey = Name by your requirements
+            var visualiserKey = v.Name;
+            PluginRegistry.VisualiserKeys.TryAdd(visualiserKey, v);
 
-            foreach (var algoType in algosInAsm)
+            // Find IVisualiser<T> and map T to this visualiser for fallback
+            var iface = v.GetInterfaces().FirstOrDefault(i =>
+                i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVisualiser<>));
+            if (iface != null)
             {
-                // look for explicit attribute match
-                var match = visInAsm.FirstOrDefault(visType =>
-                    visType.GetCustomAttributes<VisualiserForAttribute>()
-                           .Any(attr => attr.AlgorithmType == algoType));
+                var tArg = iface.GetGenericArguments()[0];
+                PluginRegistry.VisualiserByDataType.TryAdd(tArg, v);
+            }
+        }
+        PluginRegistry.Visualisers.Clear();
+        PluginRegistry.Visualisers.AddRange(allVis);
 
-                if (match != null)
+        // 2) Build final Algorithm<->Visualiser pairs
+        var allAlgos = builtInAlgos.Concat(pluginAlgos).ToList();
+        PluginRegistry.Algorithms.Clear();
+        PluginRegistry.Algorithms.AddRange(allAlgos);
+
+        var menuItems = new List<AlgorithmMenuItem>();
+        foreach (var algo in allAlgos)
+        {
+            // Look for [AlgorithmTag("VisualiserKey")]
+            var tagAttr = algo.GetCustomAttributes<AlgorithmTagAttribute>()
+                .FirstOrDefault(a => a.Tags?.Length > 0 && PluginRegistry.VisualiserKeys.ContainsKey(a.Tags[0]));
+
+            Type? visType = null;
+            string[] tags;
+
+            if (tagAttr != null)
+            {
+                var key = tagAttr.Tags![0];
+                visType = PluginRegistry.VisualiserKeys[key];
+                tags = tagAttr.Tags;
+            }
+            else
+            {
+                // Fallback by generic argument type: IAlgorithm<T>, IVisualiser<T>
+                var algoIface = algo.GetInterfaces()
+                    .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAlgorithm<>));
+                var tArg = algoIface?.GetGenericArguments()[0];
+                if (tArg != null && PluginRegistry.VisualiserByDataType.TryGetValue(tArg, out visType!))
                 {
-                    var attr = match.GetCustomAttribute<VisualiserForAttribute>()!;
-                    var tags = algoType.GetCustomAttributes<AlgorithmTagAttribute>()
-                                       .SelectMany(a => a.Tags)
-                                       .DefaultIfEmpty("Default")
-                                       .ToArray();
-
-                    menuItems.Add(new AlgorithmMenuItem(
-                        algoType.Name,
-                        algoType,
-                        match,
-                        tags));
-
-                    // remove from both pools as needed
-                    remainingAlgos.Remove(algoType);
-                    visInAsm.Remove(match);
-                    if (!attr.AllowGlobalFallback)
-                        globalVisPool.Remove(match);
+                    tags = ["Default"];
+                }
+                else
+                {
+                    // Optionally, skip or handle missing visualisers here
+                    continue;
                 }
             }
+
+            menuItems.Add(new AlgorithmMenuItem(
+                algo.Name,
+                algo,
+                visType!,
+                tags ?? ["Default"]));
         }
 
-        // 4b) fallback cross-assembly match by data-type
-        foreach (var algoType in remainingAlgos.ToList())
-        {
-            var dataT = algoType.GetInterfaces()
-                                .First(i => i.IsGenericType
-                                          && i.GetGenericTypeDefinition() == typeof(IAlgorithm<>))
-                                .GetGenericArguments()[0];
-
-            var visType = globalVisPool.FirstOrDefault(v =>
-                v.GetInterfaces().Any(i =>
-                    i.IsGenericType
-                    && i.GetGenericTypeDefinition() == typeof(IVisualiser<>)
-                    && i.GetGenericArguments()[0] == dataT));
-
-            if (visType != null)
-            {
-                var tags = algoType.GetCustomAttributes<AlgorithmTagAttribute>()
-                                   .SelectMany(a => a.Tags)
-                                   .DefaultIfEmpty("Default")
-                                   .ToArray();
-
-                menuItems.Add(new AlgorithmMenuItem(
-                    algoType.Name,
-                    algoType,
-                    visType,
-                    tags));
-
-                globalVisPool.Remove(visType);
-                remainingAlgos.Remove(algoType);
-            }
-        }
-
-        // 5) push into your ObservableCollection on UI thread
+        // Update ObservableCollection on UI thread
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             AllAlgorithms.Clear();
             foreach (var mi in menuItems)
                 AllAlgorithms.Add(mi);
-
             DiscoveryStatus = $"{AllAlgorithms.Count} algorithm(s) loaded";
         });
     }

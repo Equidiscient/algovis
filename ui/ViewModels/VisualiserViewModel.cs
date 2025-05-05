@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using algo_vis.core.Interfaces;
 using algo_vis.core.Models;
 using algo_vis.ui.Models;
@@ -38,7 +39,7 @@ namespace algo_vis.ui.ViewModels;
   PropertyChanged += (_, e) =>
   {
     if (e.PropertyName == nameof(RenderedOutput) 
-        && RenderedOutput is SKBitmap bmp)
+        && RenderedOutput is { } bmp)
     {
       var canvas = new SkiaVisualisationCanvas(bmp);
       _visualiser.DrawData(init.Data, canvas);
@@ -56,6 +57,7 @@ namespace algo_vis.ui.ViewModels;
 
     [ObservableProperty]
     private VerbosityLevel _selectedLevel;
+    
     partial void OnSelectedLevelChanged(VerbosityLevel old, VerbosityLevel @new)
     {
       // re-render the last explanation at the newly picked level
@@ -64,6 +66,14 @@ namespace algo_vis.ui.ViewModels;
 
     [ObservableProperty] private string     _explanation    = string.Empty;
     [ObservableProperty] private SKBitmap?  _renderedOutput;
+
+    partial void OnRenderedOutputChanged(SKBitmap? value)
+    {
+      if(value is null) return;
+      Debug.WriteLine("RenderedOutput changed:");
+      var canvas = new SkiaVisualisationCanvas(value);
+      _visualiser.DrawData(_controller.Current.Data, canvas);
+    }
 
     public IRelayCommand NextStepCommand { get; }
 

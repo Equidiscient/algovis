@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+using algo_vis.builtins.algorithms;
 using algo_vis.core.Interfaces;
 
 namespace algo_vis.ui.Services.Plugins;
@@ -15,6 +16,26 @@ public class PluginLoader : IPluginLoader
   // cache one scan per folder
   private Task<Type[]>? _allTypesTask;
   private string?        _lastFolder;
+  
+    public Type[] LoadBuiltInAlgorithms(Assembly? assembly = null)
+    {
+        assembly ??= Assembly.GetAssembly(typeof(BubbleSortAlgorithm));
+        return assembly?
+            .GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAlgorithm<>)))
+            .ToArray() ?? [];
+    }
+    
+    public Type[] LoadBuiltInVisualisers(Assembly? assembly = null)
+    {
+        assembly ??= Assembly.GetAssembly(typeof(BubbleSortAlgorithm));
+        return assembly?
+            .GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVisualiser<>)))
+            .ToArray() ?? [];
+    }
 
   public Task<Type[]> LoadAlgorithmsAsync(
     string folder,

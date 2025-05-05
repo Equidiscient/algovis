@@ -7,7 +7,7 @@ using algo_vis.core.Models;
 
 namespace algo_vis.builtins.visualisers;
 
-[VisualiserFor(typeof(BubbleSortAlgorithm))]
+
 public class BarChartVisualiser() : IVisualiser<int[]>
 {
   public void DrawData(int[] data, IVisualisationCanvas canvas)
