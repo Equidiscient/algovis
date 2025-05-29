@@ -1,18 +1,20 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using algo_vis.core.Interfaces;
 using algo_vis.core.Models;
 using SkiaSharp;
 
 namespace algo_vis.ui;
 
-public class SkiaVisualisationCanvas : IVisualisationCanvas
+public class SkiaVisualisationCanvas : IVisualisationCanvas, IDisposable
 {
     private readonly SKBitmap _backbuffer;
     private readonly SKCanvas _skCanvas;
+    private bool _disposed;
 
     public SkiaVisualisationCanvas(SKBitmap bmp)
     {
-        _backbuffer = bmp;
+        _backbuffer = bmp ?? throw new ArgumentNullException(nameof(bmp));
         _skCanvas = new SKCanvas(_backbuffer);
     }
 
@@ -21,11 +23,13 @@ public class SkiaVisualisationCanvas : IVisualisationCanvas
 
     public void Clear(Color32 color = default)
     {
+        ThrowIfDisposed();
         _skCanvas.Clear(new SKColor(color.R, color.G, color.B, color.A));
     }
 
-    public void FillRect(RectF r, Color32 c)
+    public void FillRect(RectF r, Color32 c = default)
     {
+        ThrowIfDisposed();
         using var paint = new SKPaint
         {
             Style = SKPaintStyle.Fill,
@@ -37,6 +41,7 @@ public class SkiaVisualisationCanvas : IVisualisationCanvas
 
     public void DrawRect(RectF r, Color32 strokeColor = default, float strokeThickness = 1)
     {
+        ThrowIfDisposed();
         using var paint = new SKPaint
         {
             Style = SKPaintStyle.Stroke,
@@ -49,6 +54,7 @@ public class SkiaVisualisationCanvas : IVisualisationCanvas
 
     public void DrawLine(Point a, Point b, Color32 strokeColor = default, float strokeThickness = 1)
     {
+        ThrowIfDisposed();
         using var paint = new SKPaint
         {
             Style = SKPaintStyle.Stroke,
@@ -61,6 +67,7 @@ public class SkiaVisualisationCanvas : IVisualisationCanvas
 
     public void DrawText(string text, Point origin, float fontSize = 12, Color32 fontColor = default)
     {
+        ThrowIfDisposed();
         using var paint = new SKPaint
         {
             Color = new SKColor(fontColor.R, fontColor.G, fontColor.B, fontColor.A),
@@ -71,12 +78,13 @@ public class SkiaVisualisationCanvas : IVisualisationCanvas
             Typeface = SKTypeface.Default,
             Size = fontSize
         };
-        // Note: Y is baseline; offset if you want top‐aligned text
-        _skCanvas.DrawText(text, origin.X, origin.Y + fontSize, SKTextAlign.Center, font, paint);
+        // Use origin.Y directly for top-aligned text
+        _skCanvas.DrawText(text, origin.X, origin.Y + fontSize, font, paint);
     }
 
     public void FillCircle(Point center, float radius, Color32 fillColor = default)
     {
+        ThrowIfDisposed();
         using var paint = new SKPaint
         {
             Style = SKPaintStyle.Fill,
@@ -86,5 +94,26 @@ public class SkiaVisualisationCanvas : IVisualisationCanvas
         _skCanvas.DrawCircle(center.X, center.Y, radius, paint);
     }
 
-    // add primitives as needed
+    /// <summary>
+    /// Flushes all pending drawing operations to the backing bitmap.
+    /// Call this after completing a frame of drawing operations.
+    /// </summary>
+    public void Flush()
+    {
+        ThrowIfDisposed();
+        _skCanvas.Flush();
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (!_disposed) return;
+        throw new ObjectDisposedException(nameof(SkiaVisualisationCanvas));
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _skCanvas?.Dispose();
+        _disposed = true;
+    }
 }
