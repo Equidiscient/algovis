@@ -2,69 +2,74 @@
 using algo_vis.core;
 using algo_vis.core.Interfaces;
 using System.Linq;
+using algo_vis.core.Types;
 
 namespace algo_vis.ui.Models;
 
 public class AlgorithmController<T>
 {
     private readonly IAlgorithm<T> _algorithm;
-    private readonly Queue<AlgorithmState<T>> _pendingStates = new();
-    private AlgorithmState<T> _current;
+    private readonly IAlgorithmExecutionStrategy<T> _executionStrategy;
+    private readonly List<AlgorithmBase<T>.Snapshot> _history = new();
+    private int _historyIndex = -1;
 
     public AlgorithmController(IAlgorithm<T> algorithm)
     {
         _algorithm = algorithm;
-        _algorithm.Initialize();
+        _executionStrategy = algorithm switch
+        {
+            IYieldingAlgorithm<T> yieldingAlgorithm => new YieldingExecutionStrategy<T>(yieldingAlgorithm),
+            _ => new StandardExecutionStrategy<T>(algorithm)
+        };
         
-        // Set initial state
-        _current = new AlgorithmState<T>(
-            _algorithm.GetDataToVisualize(),
-            _algorithm.GetExplanation()
-        );
+        _algorithm.Initialize();
+        AddInitialState();
     }
 
-    public AlgorithmState<T> Current => _current;
+    public AlgorithmState<T> CurrentAlgoState => _history[_historyIndex].AlgorithmState;
+    
+    public bool CanStepForward => 
+        _historyIndex < _history.Count - 1 || _executionStrategy.CanExecuteStep();
+    
+    public bool CanStepBackward => _historyIndex > 0;
 
-    public AlgorithmState<T> Step()
+    public AlgorithmState<T> StepForward()
     {
-        // If we have pending sub-steps, return the next one
-        if (_pendingStates.TryDequeue(out var pendingState))
+        if (_historyIndex < _history.Count - 1)
         {
-            _current = pendingState;
-            return _current;
+            _historyIndex++;
+            _algorithm.RestoreState(_history[_historyIndex]);
+            return CurrentAlgoState;
         }
 
-        // Execute the next step
-        if (_algorithm is IYieldingAlgorithm<T> yieldingAlgorithm)
+        if (!_executionStrategy.CanExecuteStep())
         {
-            // Get all yielded states for this step
-            var states = yieldingAlgorithm.ExecuteStep().ToList();
-            
-            if (states.Any())
-            {
-                // Return the first state immediately
-                _current = states.First();
-                
-                // Queue the rest for subsequent calls
-                foreach (var state in states.Skip(1))
-                {
-                    _pendingStates.Enqueue(state);
-                }
-            }
-        }
-        else
-        {
-            // Fallback to legacy NextStep
-            var hasNext = _algorithm.NextStep();
-            _current = new AlgorithmState<T>(
-                _algorithm.GetDataToVisualize(),
-                _algorithm.GetExplanation(),
-                isComplete: !hasNext
-            );
+            return CurrentAlgoState;
         }
 
-        return _current;
+        _executionStrategy.ExecuteStep(_history, ref _historyIndex);
+        return CurrentAlgoState;
     }
 
-    public bool HasPendingSubSteps => _pendingStates.Count > 0;
+    public AlgorithmState<T> StepBackward()
+    {
+        if (!CanStepBackward)
+            return CurrentAlgoState;
+
+        if (_executionStrategy is YieldingExecutionStrategy<T> yieldingStrategy)
+        {
+            yieldingStrategy.ClearPendingSubSteps();
+        }
+
+        _historyIndex--;
+        _algorithm.RestoreState(_history[_historyIndex]);
+        return CurrentAlgoState;
+    }
+
+    private void AddInitialState()
+    {
+        var snapshot = _algorithm.CaptureState(isComplete: false);
+        _history.Add(snapshot);
+        _historyIndex = 0;
+    }
 }

@@ -31,10 +31,17 @@
                Text="{Binding Explanation}"
                TextWrapping="Wrap"/>
 
-    <!-- row 2: next-step button aligned right -->
-    <Button Grid.Row="2" Grid.Column="1"
-            HorizontalAlignment="Right"
-            Content="Next Step"
-            Command="{Binding NextStepCommand}"/>
+    <!-- row 2: navigation buttons aligned right -->
+    <StackPanel Grid.Row="2" Grid.Column="1"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+      <Button Content="Previous Step"
+              Command="{Binding PreviousStepCommand}"
+              IsEnabled="{Binding CanStepBackward}"
+              Margin="0,0,10,0"/>
+      <Button Content="Next Step"
+              Command="{Binding NextStepCommand}"
+              IsEnabled="{Binding CanStepForward}"/>
+    </StackPanel>
   </Grid>
 </UserControl>

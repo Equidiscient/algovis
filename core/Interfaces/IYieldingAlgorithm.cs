@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using algo_vis.core.Models;
+using algo_vis.core.Types;
 
 namespace algo_vis.core.Interfaces;
 
@@ -10,12 +12,7 @@ public interface IYieldingAlgorithm<T> : IAlgorithm<T>
     /// Each yield represents a sub-step that should be visualized.
     /// </summary>
     IEnumerable<AlgorithmState<T>> ExecuteStep();
-}
 
-public class AlgorithmState<T>(T data, LodExplanation explanation, bool isComplete = false, bool isSubStep = false)
-{
-    public T Data { get; } = data;
-    public LodExplanation Explanation { get; } = explanation;
-    public bool IsComplete { get; } = isComplete;
-    public bool IsSubStep { get; } = isSubStep;
+    [Obsolete("NextStep() is not supported for yielding algorithms. Use ExecuteStep() instead.", true)]
+    new bool NextStep();
 }

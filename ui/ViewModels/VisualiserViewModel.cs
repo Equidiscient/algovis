@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using algo_vis.core.Interfaces;
 using algo_vis.core.Models;
+using algo_vis.core.Types;
 using algo_vis.ui.Controls;
 using algo_vis.ui.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,13 +15,21 @@ public partial class VisualiserViewModel<T> : ViewModelBase, IVisualiserViewMode
 {
     private readonly AlgorithmController<T> _controller;
     private readonly IVisualiser<T> _visualiser;
-    private SkiaCanvas? _canvas;
-
-    // queue up the last full LodExplanation
-    private LodExplanation _lastLod = default!;
-
-    // track when algorithm is done
+    private SkiaCanvas? _skiaCanvas;
+    private LodExplanation _lastLod;
     private bool _isComplete;
+
+    [ObservableProperty] private VerbosityLevel _selectedLevel = VerbosityLevel.Brief;
+    [ObservableProperty] private string _explanation = "";
+    [ObservableProperty] private bool _canStepForward = true;
+    [ObservableProperty] private bool _canStepBackward = false;
+
+    public IRelayCommand NextStepCommand { get; }
+    public IRelayCommand PreviousStepCommand { get; }
+    
+    // Interface implementation
+    public IReadOnlyList<VerbosityLevel> VerbosityLevels { get; } = 
+        new[] { VerbosityLevel.Brief, VerbosityLevel.Detailed }.ToImmutableList();
 
     public VisualiserViewModel(
         AlgorithmController<T> controller,
@@ -28,67 +37,78 @@ public partial class VisualiserViewModel<T> : ViewModelBase, IVisualiserViewMode
     {
         _controller = controller;
         _visualiser = visualiser;
-        NextStepCommand = new RelayCommand(OnNext);
-
-        // 1) grab the very first state/explanation
-        var init = _controller.Current;
-        _lastLod = init.Explanation;
-        Explanation = _lastLod[SelectedLevel];
-
-        SelectedLevel = VerbosityLevel.Brief;
-    }
-
-    /// <summary>
-    /// All available verbosity levels for the UI to choose.
-    /// </summary>
-    public IReadOnlyList<VerbosityLevel> VerbosityLevels => Enum.GetValues<VerbosityLevel>().AsReadOnly();
-
-    [ObservableProperty]
-    private VerbosityLevel _selectedLevel;
-    
-    partial void OnSelectedLevelChanged(VerbosityLevel old, VerbosityLevel @new)
-    {
-        // re-render the last explanation at the newly picked level
-        Explanation = _lastLod[@new];
         
-        // Re-render current data with new verbosity level if needed
-        RenderCurrentData();
+        // Initialize commands
+        NextStepCommand = new RelayCommand(OnNext, () => CanStepForward);
+        PreviousStepCommand = new RelayCommand(OnPrevious, () => CanStepBackward);
+        
+        // Set initial state
+        var initialState = _controller.CurrentAlgoState;
+        _lastLod = initialState.Explanation;
+        Explanation = _lastLod[SelectedLevel];
+        _isComplete = initialState.IsComplete;
+        
+        UpdateNavigationState();
     }
 
-    [ObservableProperty] 
-    private string _explanation = string.Empty;
+    partial void OnSelectedLevelChanged(VerbosityLevel value)
+    {
+        Explanation = _lastLod[value];
+    }
 
-    public IRelayCommand NextStepCommand { get; }
-
+    // Interface implementation - takes SkiaCanvas UI control
     public void SetCanvas(SkiaCanvas canvas)
     {
-        _canvas = canvas;
-        
-        // Render initial state immediately
-        RenderCurrentData();
-    }
-
-    private void RenderCurrentData()
-    {
-        if (_canvas != null)
-        {
-            var currentData = _controller.Current.Data;
-            _canvas.RenderVisualization(currentData, _visualiser);
-        }
+        _skiaCanvas = canvas;
+        // Render initial state
+        RenderCurrentState();
     }
 
     private void OnNext()
     {
-        if (_isComplete || _canvas == null)
+        if (!_controller.CanStepForward)
             return;
 
-        var result = _controller.Step();
+        var result = _controller.StepForward();
+        UpdateStateFromResult(result);
+        UpdateNavigationState();
+    }
+
+    private void OnPrevious()
+    {
+        if (!_controller.CanStepBackward)
+            return;
+
+        var result = _controller.StepBackward();
+        UpdateStateFromResult(result);
+        UpdateNavigationState();
+    }
+
+    private void UpdateStateFromResult(AlgorithmState<T> result)
+    {
         _isComplete = result.IsComplete;
         _lastLod = result.Explanation;
         Explanation = _lastLod[SelectedLevel];
+        RenderCurrentState();
+    }
 
-        // Render the new data
-        _canvas.RenderVisualization(result.Data, _visualiser);
+    private void RenderCurrentState()
+    {
+        if (_skiaCanvas == null) return;
+        
+        var currentData = _controller.CurrentAlgoState.Data;
+        // Use the SkiaCanvas control's RenderVisualization method
+        // This method creates a SkiaVisualisationCanvas internally and calls the visualiser
+        _skiaCanvas.RenderVisualization(currentData, _visualiser);
+    }
+
+    private void UpdateNavigationState()
+    {
+        CanStepForward = _controller.CanStepForward;
+        CanStepBackward = _controller.CanStepBackward;
+        
+        NextStepCommand.NotifyCanExecuteChanged();
+        PreviousStepCommand.NotifyCanExecuteChanged();
     }
 }
 
@@ -100,5 +120,8 @@ public interface IVisualiserViewModel
     
     VerbosityLevel SelectedLevel { get; set; }
     IRelayCommand NextStepCommand { get; }
+    IRelayCommand PreviousStepCommand { get; }
+    bool CanStepForward { get; }
+    bool CanStepBackward { get; }
     void SetCanvas(SkiaCanvas canvas);
 }

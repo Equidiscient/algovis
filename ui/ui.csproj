@@ -43,10 +43,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Interfaces\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Remove="ViewModels\SortingVisualiserViewModel.cs" />
       <Compile Remove="ViewModels\BarChartViewModel.cs" />
     </ItemGroup>

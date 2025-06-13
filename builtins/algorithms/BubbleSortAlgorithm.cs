@@ -9,14 +9,13 @@ using algo_vis.core.Models;
 namespace algo_vis.builtins.algorithms
 {
     [AlgorithmTag("Built-in", "Sorting")]
-    public class BubbleSortAlgorithm : IAlgorithm<int[]>
+    public class BubbleSortAlgorithm : AlgorithmBase<int[]>
     {
-        private int[] _data = [];
         private int _i, _j;
         private bool _sorted;
         private LodExplanation _lastExplanation;
 
-        public void Initialize()
+        public override void Initialize()
         {
             var bytes = new byte[20];
             new Random().NextBytes(bytes);
@@ -36,7 +35,7 @@ namespace algo_vis.builtins.algorithms
             });
         }
 
-        public bool NextStep()
+        public override bool NextStep()
         {
             if (_sorted)
             {
@@ -100,7 +99,24 @@ namespace algo_vis.builtins.algorithms
             return !_sorted;
         }
 
-        public LodExplanation GetExplanation() => _lastExplanation;
+        protected override void ResetToInitialState()
+        {
+            _i = 0;
+            _j = 0;
+            _sorted = false;
+            
+            // Update explanation when resetting
+            if (_data != null)
+            {
+                _lastExplanation = new LodExplanation(new Dictionary<VerbosityLevel, string>
+                {
+                    [VerbosityLevel.Brief] = "Algorithm reset",
+                    [VerbosityLevel.Detailed] = "Algorithm state reset to beginning"
+                });
+            }
+        }
+        
+        public override LodExplanation GetExplanation() => _lastExplanation;
 
         public int[] GetDataToVisualize() => (int[])_data.Clone();
     }
